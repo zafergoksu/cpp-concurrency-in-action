@@ -1,0 +1,47 @@
+# Build folders
+build/
+build_*/
+build-*/
+*-build-*/
+cmake-build-*/
+CMakeFiles/
+.cache/
+
+# Conan 2 + CMake generated files
+CMakeUserPresets.json
+conan_toolchain.cmake
+conandeps*.cmake
+CMakeCache.txt
+cmake_install.cmake
+CTestTestfile.cmake
+Testing/
+compile_commands.json
+
+# Editors / IDEs
+.idea/
+.vscode/
+
+# Prerequisites / objects
+*.d
+*.slo
+*.lo
+*.o
+*.obj
+*.gch
+*.pch
+
+# Libraries / executables
+*.so
+*.dylib
+*.dll
+*.lai
+*.la
+*.a
+*.lib
+*.exe
+*.out
+*.app
+*.bin
+
+# Logs
+*.log
