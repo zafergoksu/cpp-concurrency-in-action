@@ -1,27 +1,30 @@
 #include <algorithm>
 #include <iostream>
-#include <thread>
 #include <list>
 #include <mutex>
+#include <thread>
 #include <vector>
 
 std::list<int> someList;
 std::mutex someMutex;
 
-void addToList(int newValue) {
+void addToList(int newValue)
+{
     // std::lock_guard<std::mutex> guard(someMutex);
     std::scoped_lock guard(someMutex);
     someList.emplace_back(newValue);
 }
 
-bool listContains(int valueToFind) {
+bool listContains(int valueToFind)
+{
     // std::lock_guard guard(someMutex);
     std::scoped_lock guard(someMutex);
     // return std::find(someList.begin(), someList.end(), valueToFind) != someList.end();
     return std::ranges::find(someList, valueToFind) != someList.end();
 }
 
-int main (int argc, char *argv[]) {
+int main(int argc, char* argv[])
+{
     std::vector<std::thread> threads;
     for (int i = 0; i < 20; ++i) {
         threads.emplace_back(addToList, i);

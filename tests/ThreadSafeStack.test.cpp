@@ -9,43 +9,48 @@
 #include <thread>
 #include <vector>
 
-using concurrency::ThreadSafeStack;
 using concurrency::EmptyStackException;
+using concurrency::ThreadSafeStack;
 
-TEST(ThreadSafeStack, IsEmpty) {
+TEST(ThreadSafeStack, IsEmpty)
+{
     ThreadSafeStack<int> stack{};
-    
+
     EXPECT_TRUE(stack.empty());
 }
 
-TEST(ThreadSafeStack, InitializeOneValueRef) {
+TEST(ThreadSafeStack, InitializeOneValueRef)
+{
     ThreadSafeStack<int> stack{};
     stack.push(1);
-    
+
     EXPECT_FALSE(stack.empty());
     int myValue;
     stack.pop(myValue);
     EXPECT_EQ(myValue, 1);
 }
 
-TEST(ThreadSafeStack, InitializeOneValueSharedPtr) {
+TEST(ThreadSafeStack, InitializeOneValueSharedPtr)
+{
     ThreadSafeStack<int> stack{};
     stack.push(1);
-    
+
     EXPECT_FALSE(stack.empty());
     std::shared_ptr<int> myValue = stack.pop();
     ASSERT_NE(myValue, nullptr);
     EXPECT_EQ(*myValue, 1);
 }
 
-TEST(ThreadSafeStack, PopThrowsOnEmptyStack) {
+TEST(ThreadSafeStack, PopThrowsOnEmptyStack)
+{
     ThreadSafeStack<int> stack{};
-    
+
     EXPECT_TRUE(stack.empty());
     EXPECT_THROW((void)stack.pop(), EmptyStackException);
 }
 
-TEST(ThreadSafeStack, PopsInOrder) {
+TEST(ThreadSafeStack, PopsInOrder)
+{
     ThreadSafeStack<int> stack{};
     stack.push(1);
     stack.push(2);
@@ -64,14 +69,16 @@ TEST(ThreadSafeStack, PopsInOrder) {
     ASSERT_TRUE(stack.empty());
 }
 
-TEST(ThreadSafeStack, PopByRefThrowsOnEmptyStack) {
+TEST(ThreadSafeStack, PopByRefThrowsOnEmptyStack)
+{
     ThreadSafeStack<int> stack{};
 
     int value{};
     EXPECT_THROW(stack.pop(value), EmptyStackException);
 }
 
-TEST(ThreadSafeStack, EmptyStackExceptionMessage) {
+TEST(ThreadSafeStack, EmptyStackExceptionMessage)
+{
     ThreadSafeStack<int> stack{};
 
     try {
@@ -82,7 +89,8 @@ TEST(ThreadSafeStack, EmptyStackExceptionMessage) {
     }
 }
 
-TEST(ThreadSafeStack, PopThrowLeavesStackUsable) {
+TEST(ThreadSafeStack, PopThrowLeavesStackUsable)
+{
     ThreadSafeStack<int> stack{};
     EXPECT_THROW((void)stack.pop(), EmptyStackException);
 
@@ -93,7 +101,8 @@ TEST(ThreadSafeStack, PopThrowLeavesStackUsable) {
     EXPECT_EQ(value, sentinel);
 }
 
-TEST(ThreadSafeStack, CopyConstructorCopiesContents) {
+TEST(ThreadSafeStack, CopyConstructorCopiesContents)
+{
     ThreadSafeStack<int> stack{};
     stack.push(1);
     stack.push(2);
@@ -115,7 +124,8 @@ TEST(ThreadSafeStack, CopyConstructorCopiesContents) {
     EXPECT_TRUE(stack.empty());
 }
 
-TEST(ThreadSafeStack, HoldsNonTrivialTypes) {
+TEST(ThreadSafeStack, HoldsNonTrivialTypes)
+{
     constexpr std::size_t longLength = 1000;
     ThreadSafeStack<std::string> stack{};
     stack.push("hello");
@@ -130,7 +140,8 @@ TEST(ThreadSafeStack, HoldsNonTrivialTypes) {
     EXPECT_EQ(value, "hello");
 }
 
-TEST(ThreadSafeStack, ConcurrentPushesLoseNothing) {
+TEST(ThreadSafeStack, ConcurrentPushesLoseNothing)
+{
     constexpr std::size_t numThreads = 4;
     constexpr int pushesPerThread = 1000;
 
@@ -144,7 +155,8 @@ TEST(ThreadSafeStack, ConcurrentPushesLoseNothing) {
                 // wait until all threads are initialized
                 startSignal.arrive_and_wait();
                 for (int i = 0; i < pushesPerThread; ++i) {
-                    stack.push((static_cast<int>(threadId) * pushesPerThread) + i);
+                    stack.push((static_cast<int>(threadId) * pushesPerThread) +
+                               i);
                 }
             });
         }
@@ -165,7 +177,8 @@ TEST(ThreadSafeStack, ConcurrentPushesLoseNothing) {
     }
 }
 
-TEST(ThreadSafeStack, ConcurrentPushAndPop) {
+TEST(ThreadSafeStack, ConcurrentPushAndPop)
+{
     constexpr std::size_t numProducers = 2;
     constexpr std::size_t numConsumers = 2;
     constexpr int pushesPerProducer = 1000;
@@ -179,20 +192,23 @@ TEST(ThreadSafeStack, ConcurrentPushAndPop) {
         // thread pool that we wait for at the end of scope
         std::vector<std::jthread> workers;
         workers.reserve(numProducers + numConsumers);
-        
+
         for (std::size_t threadId = 0; threadId < numProducers; ++threadId) {
             workers.emplace_back([&stack, &startSignal, threadId]() -> void {
                 startSignal.arrive_and_wait();
                 for (int i = 0; i < pushesPerProducer; ++i) {
-                    stack.push((static_cast<int>(threadId) * pushesPerProducer) + i);
+                    stack.push(
+                        (static_cast<int>(threadId) * pushesPerProducer) + i);
                 }
             });
         }
 
         for (std::size_t threadId = 0; threadId < numConsumers; ++threadId) {
-            workers.emplace_back([&stack, &startSignal, &consumedCount, &consumedSum]() -> void {
+            workers.emplace_back([&stack, &startSignal, &consumedCount,
+                                  &consumedSum]() -> void {
                 startSignal.arrive_and_wait();
-                while (consumedCount.load(std::memory_order_relaxed) < totalItems) {
+                while (consumedCount.load(std::memory_order_relaxed) <
+                       totalItems) {
                     try {
                         int value{};
                         stack.pop(value);
@@ -208,7 +224,8 @@ TEST(ThreadSafeStack, ConcurrentPushAndPop) {
         }
     }
 
-    constexpr int expectedSum = static_cast<int>(totalItems) * (totalItems - 1) / 2;
+    constexpr int expectedSum =
+        static_cast<int>(totalItems) * (totalItems - 1) / 2;
     EXPECT_EQ(consumedCount.load(std::memory_order_relaxed), totalItems);
     EXPECT_EQ(consumedSum.load(std::memory_order_relaxed), expectedSum);
     EXPECT_TRUE(stack.empty());

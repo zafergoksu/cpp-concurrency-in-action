@@ -5,10 +5,12 @@
 #include <mutex>
 #include <stack>
 
-namespace concurrency {
+namespace concurrency
+{
 
-const char* EmptyStackException::what() const noexcept {
+const char* EmptyStackException::what() const noexcept
+{
     return "Empty stack";
 }
 
-} // namespace concurrency
+}  // namespace concurrency
