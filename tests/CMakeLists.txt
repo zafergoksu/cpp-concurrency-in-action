@@ -1,7 +1,7 @@
 find_package(GTest REQUIRED)
 
 add_executable(cpp_concurrency_in_action_tests
-    test_greeting.cpp)
+    ThreadSafeStack.test.cpp)
 
 target_link_libraries(cpp_concurrency_in_action_tests
     PRIVATE
